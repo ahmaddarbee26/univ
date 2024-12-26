@@ -8,8 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Data.SqlClient;
+using univ;
 
-namespace University
+namespace Univ
 {
     public partial class main : Form
     {
@@ -25,7 +26,7 @@ namespace University
             string email = Email.Text;
             string password = Password.Text;
 
-            string connectionString = "Server=DESKTOP-KCI0579;Database=university;Trusted_Connection=True;TrustServerCertificate=True;";
+            string connectionString = "Server=DESKTOP-KCI0579;Database=univ;Trusted_Connection=True;TrustServerCertificate=True;";
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -33,43 +34,61 @@ namespace University
                 {
                     connection.Open();
 
-                    string query = "SELECT Role FROM Users1 WHERE Email = @Email AND Password = @Password";
-                    SqlCommand command = new SqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@Email", email);
-                    command.Parameters.AddWithValue("@Password", password);
+                    string adminQuery = "SELECT COUNT(*) FROM Admin WHERE Email = @Email AND Password = @Password";
+                    SqlCommand adminCommand = new SqlCommand(adminQuery, connection);
+                    adminCommand.Parameters.AddWithValue("@Email", email);
+                    adminCommand.Parameters.AddWithValue("@Password", password);
 
-                    var role = command.ExecuteScalar();
+                    var adminCount = (int)adminCommand.ExecuteScalar();
 
-                    if (role != null)
+                    if (adminCount > 0)
                     {
-                        string userRole = role.ToString();
+                        MessageBox.Show("Welcome Admin!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        var adminForm = new Admin();
+                        adminForm.Show();
+                        this.Hide();
+                        return;
+                    }
 
-                        if (userRole == "Admin")
-                        {
-                            MessageBox.Show("Welcome Admin!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            var adminForm = new admin();
-                            adminForm.Show();
-                            this.Hide();
-                        }
-                        else if (userRole == "Teacher")
-                        {
-                            MessageBox.Show("Welcome Teacher!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            var teacherForm = new teacherpanel();
-                            teacherForm.Show();
-                            this.Hide();
-                        }
-                        else if (userRole == "Student")
-                        {
-                            MessageBox.Show("Welcome Student!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            var studentForm = new studentpanel();
-                            studentForm.Show();
-                            this.Hide();
-                        }
-                    }
-                    else
+                    
+                    string teacherQuery = "SELECT Id FROM Teacher WHERE Email = @Email AND Password = @Password";
+                    SqlCommand teacherCommand = new SqlCommand(teacherQuery, connection);
+                    teacherCommand.Parameters.AddWithValue("@Email", email);
+                    teacherCommand.Parameters.AddWithValue("@Password", password);
+
+                    var result = teacherCommand.ExecuteScalar();
+
+                    if (result != null)
                     {
-                        MessageBox.Show("Invalid credentials, please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        int teacherId = Convert.ToInt32(result);
+
+                        MessageBox.Show("Welcome Teacher!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        var teacherForm = new teacherpanel(teacherId);
+                        teacherForm.Show();
+                        this.Hide();
                     }
+                    
+
+                   
+                    string studentQuery = "SELECT COUNT(*) FROM Students WHERE Email = @Email AND Password = @Password";
+                    SqlCommand studentCommand = new SqlCommand(studentQuery, connection);
+                    studentCommand.Parameters.AddWithValue("@Email", email);
+                    studentCommand.Parameters.AddWithValue("@Password", password);
+
+                    int studentCount = (int)studentCommand.ExecuteScalar();
+
+                    if (studentCount > 0)
+                    {
+                        MessageBox.Show("Welcome Student!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        var studentForm = new studentpanel();
+                        studentForm.Show();
+                        this.Hide();
+                        return;
+                    }
+
+                    
+                    MessageBox.Show("Invalid credentials, please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 catch (Exception ex)
                 {
@@ -77,6 +96,8 @@ namespace University
                 }
             }
         }
+
+
 
 
 

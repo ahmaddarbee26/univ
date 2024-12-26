@@ -1,4 +1,4 @@
-﻿namespace University
+﻿namespace Univ
 {
     partial class main
     {

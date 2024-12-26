@@ -1,4 +1,4 @@
-using University;
+using Univ;
 
 namespace univ
 {

@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using Microsoft.Data.SqlClient;
 using PROJECT;
 
-namespace University
+namespace Univ
 {
     public partial class studentpanel : Form
     {
@@ -27,23 +27,23 @@ namespace University
         private void label1_Click(object sender, EventArgs e)
         {
             string enrollKey = textBox1.Text;
-            string connectionString = "Server=DESKTOP-KCI0579;Database=university;Trusted_Connection=True;";
-
+            string connectionString = "Server=DESKTOP-KCI0579;Database=univ;Trusted_Connection=True;TrustServerCertificate=True;";
             using (SqlConnection connection = new SqlConnection(connectionString))
+
             {
 
 
                 connection.Open();
 
-                string query = "SELECT CourseName FROM Courses WHERE EnrollKey = @EnrollKey";
+                string query = "SELECT Name FROM Courses WHERE EnrollKey = @EnrollKey";
                 SqlCommand command = new SqlCommand(query, connection);
                 command.Parameters.AddWithValue("@EnrollKey", enrollKey);
 
-                var courseName = command.ExecuteScalar();
+                var Name = command.ExecuteScalar();
 
-                if (courseName != null)
+                if (Name != null)
                 {
-                    cource.Items.Add(courseName.ToString());
+                    cource.Items.Add(Name.ToString());
                     MessageBox.Show("Course added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
@@ -80,14 +80,54 @@ namespace University
                 return;
             }
 
-            var examForm = new exampanel();
-            examForm.course = selectedCourse;
+            int selectedExamId = GetExamIdForSelectedCourse();
+
+            if (selectedExamId == 0)
+            {
+                MessageBox.Show("No exam available for this course.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var examForm = new exampanel(selectedExamId);
             examForm.Show();
             this.Hide();
         }
-    }
 
+        private int GetExamIdForSelectedCourse()
+        {
+            string selectedCourse = cource.SelectedItem?.ToString();
+
+            if (string.IsNullOrEmpty(selectedCourse)) return 0;
+
+            string connectionString = "Server=DESKTOP-KCI0579;Database=univ;Trusted_Connection=True;TrustServerCertificate=True;";
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    string query = "SELECT Id FROM Exam WHERE CourseId = (SELECT Id FROM Courses WHERE Name = @Name)";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@Name", selectedCourse);
+
+                    connection.Open();
+                    var result = command.ExecuteScalar();
+
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show($"Database error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unexpected error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 0;
+            }
+        }
+    }
 }
+
 
 
 

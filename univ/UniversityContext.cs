@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.SqlServer;
 using System;
 using System.Linq;
 using System.Text;
-using University;
+using Univ;
 
 
 public class UniversityContext : DbContext
@@ -18,6 +18,6 @@ public class UniversityContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer("Server=DESKTOP-KCI0579;Database=university;Trusted_Connection=True;TrustServerCertificate=True;");
+        optionsBuilder.UseSqlServer("Server=DESKTOP-KCI0579;Database=univ;Trusted_Connection=True;TrustServerCertificate=True;");
     }
 }
